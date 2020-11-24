@@ -10,7 +10,6 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
     def __init__(self,
                  root_path: str,
-                 annotationfile_path: str,
                  seq_len: int,
                  step: int,
                  imagefile_template: str='{:05d}.jpg',
@@ -18,7 +17,6 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         super(VideoFrameDataset, self).__init__()
 
         self.root_path = root_path
-        self.annotationfile_path = annotationfile_path
         self.imagefile_template = imagefile_template
         self.transform = transform
         self.seq_len = seq_len
@@ -31,27 +29,33 @@ class VideoFrameDataset(torch.utils.data.Dataset):
     def _parse_list(self):
         frame_list = []
 
-        with open(self.annotationfile_path) as f:
+        with open(os.path.join(self.root_path, "annotations.txt")) as f:
             annotations = f.readlines()
 
         for fname in os.listdir(self.root_path): # assume file are read in the right order. TODO: better solution ? format index
-            frame_list.append(os.path.join(root_path, fname))
+            if fname.endswith(".jpg"):
+                frame_list.append(os.path.join(self.root_path, fname))
+
+        if len(frame_list) > len(annotations):
+            print(len(frame_list), " frames, ", len(annotations), " annotations")
+            raise IndexError
 
         self.sample_list = []
         for i in range(len(frame_list)-self.seq_len):
-            item = (frame_list[i:i+seq_len], annotations[i+self.seq_len])
+            item = (frame_list[i:i+self.seq_len], float(annotations[i+self.seq_len]))
             self.sample_list.append(item)
 
     def __getitem__(self, index):
         # load images in list
         sample = self.sample_list[index]
 
-        iamges = []
+        images = []
         for pth in sample[0]:
-            img_list.append(Image.open(pth))
+            images.append(Image.open(pth))
 
-        if self.transform is not None:
-            images = self.transform(images)
+        # if self.transform is not None:
+        #    images = self.transform(images)
+        images = ImglistToTensor().forward(images)
 
         label = sample[1]
         return images, label
