@@ -57,7 +57,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         #    images = self.transform(images)
         images = ImglistToTensor().forward(images)
 
-        label = sample[1]
+        label = torch.Tensor(sample[1])
         return images, label
 
     def __len__(self):

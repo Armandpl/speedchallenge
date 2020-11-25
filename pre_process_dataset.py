@@ -33,8 +33,8 @@ if __name__ == "__main__":
     test_dir = "data/test"
     val_pct = 0.3
 
-    # video_to_frames("./data/train.mp4", train_dir)
-    # video_to_frames("./data/test.mp4", test_dir)
+    video_to_frames("./data/train.mp4", train_dir)
+    video_to_frames("./data/test.mp4", test_dir)
 
     os.makedirs(val_dir)
     train_pct = 1 - val_pct
