@@ -69,8 +69,8 @@ if __name__ == "__main__":
     run = wandb.init(config=hyperparameter_defaults)
     config = wandb.config
 
-    trainset = VideoFrameDataset(os.path.join("data", "train"), config.sequence_length, 8, skip_frames=config.skip_frames)
-    validset = VideoFrameDataset(os.path.join("data", "valid"), config.sequence_length, 1, skip_frames=config.skip_frames)
+    trainset = VideoFrameDataset(os.path.join("data", "train"), config.sequence_length, config.sequence_length*config.skip_frames/2, skip_frames=config.skip_frames)
+    validset = VideoFrameDataset(os.path.join("data", "valid"), config.sequence_length, 10, skip_frames=config.skip_frames)
 
     train_loader = DataLoader(dataset=trainset, batch_size=config.batch_size, shuffle=True)
     test_loader = DataLoader(dataset=validset, batch_size=config.batch_size, shuffle=True)
@@ -115,6 +115,5 @@ if __name__ == "__main__":
         })
         train_loss.reset()
 
-        if (epoch+1)%5 == 0:
-            evaluate(test_loader, model)
+        evaluate(test_loader, model)
 
