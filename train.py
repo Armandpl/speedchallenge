@@ -17,6 +17,7 @@ from models.resnet import generate_model
 import wandb
 import os
 from progressbar import progressbar
+from models.cnn_lstm import Resnet18Rnn
 
 # Check accuracy on training & test to see how good our model
 def evaluate(loader, model):
@@ -45,7 +46,8 @@ if __name__ == "__main__":
     # Set device
     device = torch.device("cuda")
 
-    model = generate_model(model_depth=18, n_classes=1)
+    model = generate_model(model_depth=34, n_classes=1)
+    # model = Resnet18Rnn()
     # init wandb
     run = wandb.init(project="speedchallenge", job_type='train')
 
@@ -54,20 +56,21 @@ if __name__ == "__main__":
     # artifact_dir = artifact.download()
 
     # Hyperparams
+    hyperparameter_defaults = dict(
+        sequence_length = 10,
+        learning_rate = 0.0001,
+        batch_size = 32,
+        num_epochs = 20,
+        skip_frames = 8,
+        model = "3D Resnet34"
+        )
+
+    # Pass your defaults to wandb.init
+    run = wandb.init(config=hyperparameter_defaults)
     config = wandb.config
-    # config.input_size = 28
-    # config.hidden_size = 256
-    # config.num_layers = 2
-    config.num_classes = 1
-    config.sequence_length = 10
-    config.learning_rate = 0.05
-    config.batch_size = 32
-    config.num_epochs = 10
 
-    config.model = "3D Resnet18"
-
-    trainset = VideoFrameDataset(os.path.join("data", "train"), config.sequence_length, 8)
-    validset = VideoFrameDataset(os.path.join("data", "valid"), config.sequence_length, 8)
+    trainset = VideoFrameDataset(os.path.join("data", "train"), config.sequence_length, 8, skip_frames=config.skip_frames)
+    validset = VideoFrameDataset(os.path.join("data", "valid"), config.sequence_length, 1, skip_frames=config.skip_frames)
 
     train_loader = DataLoader(dataset=trainset, batch_size=config.batch_size, shuffle=True)
     test_loader = DataLoader(dataset=validset, batch_size=config.batch_size, shuffle=True)
@@ -112,5 +115,6 @@ if __name__ == "__main__":
         })
         train_loss.reset()
 
-        evaluate(test_loader, model)
+        if (epoch+1)%5 == 0:
+            evaluate(test_loader, model)
 
