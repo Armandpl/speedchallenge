@@ -12,6 +12,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                  root_path: str,
                  seq_len: int,
                  step: int,
+                 skip_frames = 8,
                  imagefile_template: str='{:05d}.jpg',
                  transform = None):
         super(VideoFrameDataset, self).__init__()
@@ -21,6 +22,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         self.transform = transform
         self.seq_len = seq_len
         self.step = step
+        self.skip_frames = skip_frames
 
         self._parse_list()
 
@@ -59,12 +61,12 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             
             return res
 
-        for i in range(0, len(frame_list)-self.seq_len*5, self.step):
+        for i in range(0, len(frame_list)-self.seq_len*self.skip_frames, self.step):
             
-            frames = frame_list[i:i+self.seq_len*5]
-            frames = keep_1_frames_every_y(frames, 5)
+            frames = frame_list[i:i+self.seq_len*self.skip_frames]
+            frames = keep_1_frames_every_y(frames, self.skip_frames)
 
-            item = (frames, float(annotations[i+self.seq_len*5]))
+            item = (frames, float(annotations[i+self.seq_len*self.skip_frames]))
             self.sample_list.append(item)
 
     def __getitem__(self, index):
@@ -86,6 +88,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
         label = sample[1]
         images = torch.stack(images, 0).permute(1, 0, 2, 3)
+        # images = torch.stack(images, 0).permute(0, 1, 2, 3)
         return images, label
 
     def __len__(self):
