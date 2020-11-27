@@ -28,8 +28,8 @@ def video_to_frames(video_path, output_dir):
     cap.release()
 
 if __name__ == "__main__":
-    train_dir = "data/train"
-    val_dir = "data/valid"
+    train_dir = "data/train_skip"
+    val_dir = "data/valid_skip"
     test_dir = "data/test"
     val_pct = 0.3
 

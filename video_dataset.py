@@ -20,6 +20,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         self.imagefile_template = imagefile_template
         self.transform = transform
         self.seq_len = seq_len
+        self.step = step
 
         self._parse_list()
 
@@ -32,17 +33,38 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         with open(os.path.join(self.root_path, "annotations.txt")) as f:
             annotations = f.readlines()
 
-        for fname in os.listdir(self.root_path): # assume file are read in the right order. TODO: better solution ? format index
+        image_nb = 0
+        for fname in os.listdir(self.root_path):
             if fname.endswith(".jpg"):
-                frame_list.append(os.path.join(self.root_path, fname))
+                image_nb += 1
+        
+        for i in range(image_nb):
+            frame_list.append(os.path.join(self.root_path, str(i).zfill(5)+".jpg"))
 
         if len(frame_list) > len(annotations):
             print(len(frame_list), " frames, ", len(annotations), " annotations")
             raise IndexError
 
         self.sample_list = []
-        for i in range(len(frame_list)-self.seq_len):
-            item = (frame_list[i:i+self.seq_len], float(annotations[i+self.seq_len]))
+
+        def keep_1_frames_every_y(frames, y):
+            res = []
+            
+            i = 0
+            for f in frames:
+                i+=1
+                if (i == y):
+                    res.append(f)
+                    i = 0
+            
+            return res
+
+        for i in range(0, len(frame_list)-self.seq_len*5, self.step):
+            
+            frames = frame_list[i:i+self.seq_len*5]
+            frames = keep_1_frames_every_y(frames, 5)
+
+            item = (frames, float(annotations[i+self.seq_len*5]))
             self.sample_list.append(item)
 
     def __getitem__(self, index):
@@ -55,9 +77,15 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
         # if self.transform is not None:
         #    images = self.transform(images)
-        images = ImglistToTensor().forward(images)
+        # images = ImglistToTensor().forward(images)
+        tfms = transforms.Compose([
+            transforms.Resize((224, 224)),
+        ])
+        images = [tfms(pic) for pic in images]
+        images = [transforms.functional.to_tensor(pic) for pic in images]
 
-        label = torch.Tensor(sample[1])
+        label = sample[1]
+        images = torch.stack(images, 0).permute(1, 0, 2, 3)
         return images, label
 
     def __len__(self):
