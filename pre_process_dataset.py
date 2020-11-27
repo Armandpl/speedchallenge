@@ -28,13 +28,13 @@ def video_to_frames(video_path, output_dir):
     cap.release()
 
 if __name__ == "__main__":
-    train_dir = "data/train_skip"
-    val_dir = "data/valid_skip"
+    train_dir = "data/train"
+    val_dir = "data/valid"
     test_dir = "data/test"
     val_pct = 0.3
 
     video_to_frames("./data/train.mp4", train_dir)
-    video_to_frames("./data/test.mp4", test_dir)
+    # video_to_frames("./data/test.mp4", test_dir)
 
     os.makedirs(val_dir)
     train_pct = 1 - val_pct
