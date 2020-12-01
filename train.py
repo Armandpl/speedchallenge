@@ -68,8 +68,8 @@ if __name__ == "__main__":
     )
 
     # Pass your defaults to wandb.init
-    # run = wandb.init(config=hyperparameter_defaults)
-    run = wandb.init(project="speedchallenge")
+    run = wandb.init(config=hyperparameter_defaults)
+    # run = wandb.init(project="speedchallenge")
     config = wandb.config
 
     # Init network
