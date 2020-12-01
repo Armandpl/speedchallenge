@@ -26,13 +26,14 @@ def evaluate(loader, model):
     model.eval()
 
     with torch.no_grad():
-        for batch_idx, (x, y) in progressbar(enumerate(loader)):
+        for batch_idx, (x, y) in enumerate(loader):
             x = x.to(device=device)
+            y=y/config.max_target
             y = y.to(device=device)
 
             scores = model(x)
             loss = criterion(scores, y.float().unsqueeze(1))
-            test_loss.update(float(loss.item()))
+            test_loss.update(float(loss.item())*config.max_target)
 
         wandb.log({
             "valid loss": test_loss.avg
@@ -46,7 +47,6 @@ if __name__ == "__main__":
     # Set device
     device = torch.device("cuda")
 
-    model = generate_model(model_depth=34, n_classes=1)
     # model = Resnet18Rnn()
     # init wandb
     run = wandb.init(project="speedchallenge", job_type='train')
@@ -57,27 +57,45 @@ if __name__ == "__main__":
 
     # Hyperparams
     hyperparameter_defaults = dict(
-        sequence_length = 10,
+        sequence_length = 20,
         learning_rate = 0.0001,
-        batch_size = 32,
-        num_epochs = 20,
-        skip_frames = 8,
-        model = "3D Resnet34"
-        )
+        batch_size = 64,
+        num_epochs = 3,
+        skip_frames = 1,
+        model_depth = 34,
+        max_target = 30,
+        grayscale = False
+    )
 
     # Pass your defaults to wandb.init
-    run = wandb.init(config=hyperparameter_defaults)
+    # run = wandb.init(config=hyperparameter_defaults)
+    run = wandb.init(project="speedchallenge")
     config = wandb.config
 
-    trainset = VideoFrameDataset(os.path.join("data", "train"), int(config.sequence_length), int(config.sequence_length*config.skip_frames/2), skip_frames=int(config.skip_frames))
-    validset = VideoFrameDataset(os.path.join("data", "valid"), int(config.sequence_length), 10, skip_frames=int(config.skip_frames))
-
-    train_loader = DataLoader(dataset=trainset, batch_size=config.batch_size, shuffle=True)
-    test_loader = DataLoader(dataset=validset, batch_size=config.batch_size, shuffle=True)
-
-    # Initialize network
+    # Init network
     # model = RNN_LSTM(input_size, hidden_size, num_layers, num_classes).to(device)
 
+    if config.grayscale:
+        model = generate_model(model_depth=config.model_depth, n_classes=1, n_input_channels=1)
+
+        tfms = transforms.Compose([
+            transforms.Grayscale()
+        ])
+    else: 
+        model = generate_model(model_depth=config.model_depth, n_classes=1, n_input_channels=3)
+        tfms = None
+
+    trainset = VideoFrameDataset(os.path.join("data", "train"), int(config.sequence_length), 
+        1, skip_frames=int(config.skip_frames), transform=tfms)
+
+    validset = VideoFrameDataset(os.path.join("data", "valid"), 
+        int(config.sequence_length), 1, skip_frames=int(config.skip_frames), transform=tfms)
+
+    print(len(trainset), " items in the training set")
+    print(len(validset), " items in the validation set")
+
+    train_loader = DataLoader(dataset=trainset, batch_size=1, shuffle=True)
+    test_loader = DataLoader(dataset=validset, batch_size=1, shuffle=True)
 
     # Loss and optimizer
     criterion = nn.MSELoss()
@@ -90,30 +108,38 @@ if __name__ == "__main__":
     model.train()
     # Train Network
     for epoch in range(config.num_epochs):
-        for batch_idx, (data, targets) in progressbar(enumerate(train_loader)):
-            # Get data to cuda if possible
+        for batch_idx, (data, targets) in enumerate(train_loader):
+            # Get data to cuda 
             data = data.to(device=device)
+
+            targets = targets/config.max_target
             targets = targets.to(device=device)
 
             # forward
             scores = model(data)
             loss = criterion(scores, targets.float().unsqueeze(1))
-            wandb.log({
-                "train loss": float(loss.item())
-            })
-            train_loss.update(float(loss.item()))
+            train_loss.update(float(loss.item())*config.max_target)
 
             # backward
-            optimizer.zero_grad()
             loss.backward()
 
             # gradient descent or adam step
-            optimizer.step()
+            if (batch_idx+1)%config.batch_size == 0:
+                print("batch: ", int(batch_idx/64), "/", int(len(train_loader)/64))
+                optimizer.step()
+                optimizer.zero_grad()
 
-        wandb.log({
-        "train loss": train_loss.avg
-        })
+                wandb.log({
+                "train loss": train_loss.avg
+                })
+
         train_loss.reset()
 
         evaluate(test_loader, model)
+
+    # save model to wandb
+    torch.save(model.state_dict(), 'model.pth')
+    artifact = wandb.Artifact('model', type='model')
+    artifact.add_file('model.pth')
+    run.log_artifact(artifact)
 
