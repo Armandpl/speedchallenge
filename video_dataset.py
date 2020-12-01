@@ -84,6 +84,9 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             transforms.Resize((224, 224)),
         ])
         images = [tfms(pic) for pic in images]
+        if self.transform is not None:
+            images = [self.transform(pic) for pic in images]
+
         images = [transforms.functional.to_tensor(pic) for pic in images]
 
         label = sample[1]
