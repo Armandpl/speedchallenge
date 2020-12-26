@@ -65,6 +65,5 @@ if __name__ == "__main__":
 
             scores = model(x)
             speed = scores.cpu().item()*config.max_target
-            res.append(speed)
             print(speed)
             res.write(str(round(speed, 1))+'\n')
