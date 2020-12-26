@@ -21,4 +21,4 @@ if __name__ == "__main__":
        title='train.mp4')
 
     fig.savefig("speed.png")
-    plt.show()
+    # plt.show()
