@@ -60,7 +60,7 @@ if __name__ == "__main__":
         sequence_length = 20,
         learning_rate = 0.0001,
         batch_size = 64,
-        num_epochs = 3,
+        num_epochs = 2,
         skip_frames = 1,
         model_depth = 34,
         max_target = 30,
@@ -132,10 +132,12 @@ if __name__ == "__main__":
                 wandb.log({
                 "train loss": train_loss.avg
                 })
+            
+            if (batch_idx+1)%(len(train_loader)//5) == 0:
+                evaluate(test_loader, model)
 
         train_loss.reset()
 
-        evaluate(test_loader, model)
 
     # save model to wandb
     torch.save(model.state_dict(), 'model.pth')
