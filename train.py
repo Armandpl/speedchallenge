@@ -86,10 +86,10 @@ if __name__ == "__main__":
         tfms = None
 
     trainset = VideoFrameDataset(os.path.join("data", "train"), int(config.sequence_length), 
-        1, skip_frames=int(config.skip_frames), transform=tfms)
+        10, skip_frames=int(config.skip_frames), transform=tfms)
 
     validset = VideoFrameDataset(os.path.join("data", "valid"), 
-        int(config.sequence_length), 1, skip_frames=int(config.skip_frames), transform=tfms)
+        int(config.sequence_length), 10, skip_frames=int(config.skip_frames), transform=tfms)
 
     print(len(trainset), " items in the training set")
     print(len(validset), " items in the validation set")
