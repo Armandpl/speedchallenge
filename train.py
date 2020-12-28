@@ -57,13 +57,13 @@ if __name__ == "__main__":
 
     # Hyperparams
     hyperparameter_defaults = dict(
-        sequence_length = 80,
-        learning_rate = 0.009,
-        batch_size = 64,
-        num_epochs = 2,
-        skip_frames = 1,
-        model_depth = 34,
-        max_target = 30,
+        sequence_length = 80
+        learning_rate = 0.009
+        batch_size = 64
+        num_epochs = 2
+        skip_frames = 1
+        model_depth = 34
+        max_target = 30
         grayscale = False
     )
 

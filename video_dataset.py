@@ -5,6 +5,7 @@ from PIL import Image
 from torchvision import transforms
 import torch
 from collections.abc import Callable
+import random
 
 
 class VideoFrameDataset(torch.utils.data.Dataset):
@@ -104,8 +105,6 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         tfms = transforms.Compose(spatial_transforms)
 
         images = [tfms(pic) for pic in images]
-
-
 
         if self.transform is not None:
             images = [self.transform(pic) for pic in images]
