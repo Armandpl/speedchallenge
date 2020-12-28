@@ -80,10 +80,32 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         # if self.transform is not None:
         #    images = self.transform(images)
         # images = ImglistToTensor().forward(images)
-        tfms = transforms.Compose([
-            transforms.Resize((224, 224)),
-        ])
+        spatial_transforms = []
+        spatial_transforms.append(transforms.Resize((224, 224)))
+
+        r = random.random()
+        if r > 0.5:
+            spatial_transforms.append(transforms.RandomHorizontalFlip(p=1))
+
+        r = random.random()
+        if r > 0.8:
+            spatial_transforms.append(transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2))
+
+        r = random.random()
+        if r > 0.7:
+            spatial_transforms.append(RandomPerspective(distortion_scale=0.4, p=1, interpolation=2, fill=0))
+
+        r = random.random()
+        if r > 0.8:
+            spatial_transforms.append(RandomRotation(10, resample=False, expand=False, center=None, fill=None))
+
+
+        tfms = transforms.Compose(spatial_transforms)
+
         images = [tfms(pic) for pic in images]
+
+
+
         if self.transform is not None:
             images = [self.transform(pic) for pic in images]
 
