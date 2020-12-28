@@ -57,8 +57,8 @@ if __name__ == "__main__":
 
     # Hyperparams
     hyperparameter_defaults = dict(
-        sequence_length = 20,
-        learning_rate = 0.0001,
+        sequence_length = 80,
+        learning_rate = 0.009,
         batch_size = 64,
         num_epochs = 2,
         skip_frames = 1,
@@ -72,6 +72,15 @@ if __name__ == "__main__":
     # run = wandb.init(project="speedchallenge")
     config = wandb.config
 
+    config.sequence_length = 80,
+    config.learning_rate = 0.009,
+    config.batch_size = 64,
+    config.num_epochs = 2,
+    config.skip_frames = 1,
+    config.model_depth = 34,
+    config.max_target = 30,
+    config.grayscale = False
+
     # Init network
     # model = RNN_LSTM(input_size, hidden_size, num_layers, num_classes).to(device)
 
@@ -80,7 +89,6 @@ if __name__ == "__main__":
 
         tfms = transforms.Compose([
             transforms.Grayscale(),
-            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
 
         ])
     else:

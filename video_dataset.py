@@ -6,6 +6,7 @@ from torchvision import transforms
 import torch
 from collections.abc import Callable
 
+
 class VideoFrameDataset(torch.utils.data.Dataset):
 
     def __init__(self,
