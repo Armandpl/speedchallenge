@@ -13,7 +13,7 @@ import torchvision.transforms as transforms  # Transformations we can perform on
 ##
 from video_dataset import VideoFrameDataset, ImglistToTensor
 from utils import AverageMeter
-from models.resnet import generate_model
+from models.resnet2p1d import generate_model
 import wandb
 import os
 from progressbar import progressbar
@@ -79,17 +79,19 @@ if __name__ == "__main__":
         model = generate_model(model_depth=config.model_depth, n_classes=1, n_input_channels=1)
 
         tfms = transforms.Compose([
-            transforms.Grayscale()
+            transforms.Grayscale(),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
+
         ])
-    else: 
+    else:
         model = generate_model(model_depth=config.model_depth, n_classes=1, n_input_channels=3)
         tfms = None
 
-    trainset = VideoFrameDataset(os.path.join("data", "train"), int(config.sequence_length), 
-        5, skip_frames=int(config.skip_frames), transform=tfms)
+    trainset = VideoFrameDataset(os.path.join("data", "train"), int(config.sequence_length),
+        1, skip_frames=int(config.skip_frames), transform=tfms)
 
-    validset = VideoFrameDataset(os.path.join("data", "valid"), 
-        int(config.sequence_length), 5, skip_frames=int(config.skip_frames), transform=tfms)
+    validset = VideoFrameDataset(os.path.join("data", "valid"),
+        int(config.sequence_length), 1, skip_frames=int(config.skip_frames), transform=tfms)
 
     print(len(trainset), " items in the training set")
     print(len(validset), " items in the validation set")
@@ -109,15 +111,19 @@ if __name__ == "__main__":
     # Train Network
     for epoch in range(config.num_epochs):
         for batch_idx, (data, targets) in enumerate(train_loader):
-            # Get data to cuda 
+            # Get data to cuda
             data = data.to(device=device)
-
+            print(targets)
             targets = targets/config.max_target
+            print(targets)
             targets = targets.to(device=device)
+            print(targets)
+            targets = targets.float().unsqueeze(1)
+            print(targets)
 
             # forward
             scores = model(data)
-            loss = criterion(scores, targets.float().unsqueeze(1))
+            loss = criterion(scores, targets)
             train_loss.update(float(loss.item())*config.max_target)
 
             # backward
@@ -125,15 +131,15 @@ if __name__ == "__main__":
 
             # gradient descent or adam step
             if (batch_idx+1)%config.batch_size == 0:
-                print("batch: ", int(batch_idx/64), "/", int(len(train_loader)/64))
+                print("batch: ", int(batch_idx/config.batch_size), "/", int(len(train_loader)/config.batch_size))
                 optimizer.step()
                 optimizer.zero_grad()
 
                 wandb.log({
                 "train loss": train_loss.avg
                 })
-            
-            if (batch_idx+1)%(len(train_loader)//5) == 0:
+
+            if (batch_idx+1)%(len(train_loader)//8) == 0:
                 evaluate(test_loader, model)
 
         train_loss.reset()
