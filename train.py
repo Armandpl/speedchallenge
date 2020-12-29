@@ -113,13 +113,9 @@ if __name__ == "__main__":
         for batch_idx, (data, targets) in enumerate(train_loader):
             # Get data to cuda
             data = data.to(device=device)
-            print(targets)
             targets = targets/config.max_target
-            print(targets)
             targets = targets.to(device=device)
-            print(targets)
             targets = targets.float().unsqueeze(1)
-            print(targets)
 
             # forward
             scores = model(data)
