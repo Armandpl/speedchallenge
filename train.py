@@ -57,29 +57,21 @@ if __name__ == "__main__":
 
     # Hyperparams
     hyperparameter_defaults = dict(
-        sequence_length = 80
-        learning_rate = 0.009
-        batch_size = 64
-        num_epochs = 2
-        skip_frames = 1
-        model_depth = 34
-        max_target = 30
-        grayscale = False
+        sequence_length = 70,
+        learning_rate = 0.0001,
+        batch_size = 64,
+        num_epochs = 2,
+        skip_frames = 1,
+        model_depth = 34,
+        max_target = 30,
+        grayscale = False,
+        aug = True
     )
 
     # Pass your defaults to wandb.init
     run = wandb.init(config=hyperparameter_defaults)
     # run = wandb.init(project="speedchallenge")
     config = wandb.config
-
-    config.sequence_length = 80,
-    config.learning_rate = 0.009,
-    config.batch_size = 64,
-    config.num_epochs = 2,
-    config.skip_frames = 1,
-    config.model_depth = 34,
-    config.max_target = 30,
-    config.grayscale = False
 
     # Init network
     # model = RNN_LSTM(input_size, hidden_size, num_layers, num_classes).to(device)
@@ -96,10 +88,10 @@ if __name__ == "__main__":
         tfms = None
 
     trainset = VideoFrameDataset(os.path.join("data", "train"), int(config.sequence_length),
-        1, skip_frames=int(config.skip_frames), transform=tfms)
+        5, skip_frames=int(config.skip_frames), transform=tfms, config.aug)
 
     validset = VideoFrameDataset(os.path.join("data", "valid"),
-        int(config.sequence_length), 1, skip_frames=int(config.skip_frames), transform=tfms)
+        int(config.sequence_length), 5, skip_frames=int(config.skip_frames), transform=tfms, config.aug)
 
     print(len(trainset), " items in the training set")
     print(len(validset), " items in the validation set")

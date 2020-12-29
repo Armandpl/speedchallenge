@@ -16,7 +16,8 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                  step: int,
                  skip_frames = 8,
                  imagefile_template: str='{:05d}.jpg',
-                 transform = None):
+                 transform = None,
+                 aug = False):
         super(VideoFrameDataset, self).__init__()
 
         self.root_path = root_path
@@ -25,6 +26,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         self.seq_len = seq_len
         self.step = step
         self.skip_frames = skip_frames
+        self.aug = aug
 
         self._parse_list()
 
@@ -41,7 +43,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         for fname in os.listdir(self.root_path):
             if fname.endswith(".jpg"):
                 image_nb += 1
-        
+
         for i in range(image_nb):
             frame_list.append(os.path.join(self.root_path, str(i).zfill(5)+".jpg"))
 
@@ -53,18 +55,18 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
         def keep_1_frames_every_y(frames, y):
             res = []
-            
+
             i = 0
             for f in frames:
                 i+=1
                 if (i == y):
                     res.append(f)
                     i = 0
-            
+
             return res
 
         for i in range(0, len(frame_list)-self.seq_len*self.skip_frames, self.step):
-            
+
             frames = frame_list[i:i+self.seq_len*self.skip_frames]
             frames = keep_1_frames_every_y(frames, self.skip_frames)
 
@@ -85,21 +87,22 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         spatial_transforms = []
         spatial_transforms.append(transforms.Resize((224, 224)))
 
-        r = random.random()
-        if r > 0.5:
-            spatial_transforms.append(transforms.RandomHorizontalFlip(p=1))
+        if self.aug:
+            r = random.random()
+            if r > 0.5:
+                spatial_transforms.append(transforms.RandomHorizontalFlip(p=1))
 
-        r = random.random()
-        if r > 0.8:
-            spatial_transforms.append(transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2))
+            r = random.random()
+            if r > 0.8:
+                spatial_transforms.append(transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2))
 
-        r = random.random()
-        if r > 0.7:
-            spatial_transforms.append(RandomPerspective(distortion_scale=0.4, p=1, interpolation=2, fill=0))
+            r = random.random()
+            if r > 0.7:
+                spatial_transforms.append(RandomPerspective(distortion_scale=0.4, p=1, interpolation=2, fill=0))
 
-        r = random.random()
-        if r > 0.8:
-            spatial_transforms.append(RandomRotation(10, resample=False, expand=False, center=None, fill=None))
+            r = random.random()
+            if r > 0.8:
+                spatial_transforms.append(RandomRotation(10, resample=False, expand=False, center=None, fill=None))
 
 
         tfms = transforms.Compose(spatial_transforms)
