@@ -91,7 +91,7 @@ if __name__ == "__main__":
         5, skip_frames=int(config.skip_frames), transform=tfms, aug = config.aug)
 
     validset = VideoFrameDataset(os.path.join("data", "valid"),
-        int(config.sequence_length), 5, skip_frames=int(config.skip_frames), transform=tfms, config = config.aug)
+        int(config.sequence_length), 5, skip_frames=int(config.skip_frames), transform=tfms, aug = config.aug)
 
     print(len(trainset), " items in the training set")
     print(len(validset), " items in the validation set")
