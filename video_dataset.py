@@ -98,11 +98,11 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
             r = random.random()
             if r > 0.7:
-                spatial_transforms.append(RandomPerspective(distortion_scale=0.4, p=1, interpolation=2, fill=0))
+                spatial_transforms.append(transforms.RandomPerspective(distortion_scale=0.4, p=1, interpolation=2, fill=0))
 
             r = random.random()
             if r > 0.8:
-                spatial_transforms.append(RandomRotation(10, resample=False, expand=False, center=None, fill=None))
+                spatial_transforms.append(transforms.RandomRotation(10, resample=False, expand=False, center=None, fill=None))
 
 
         tfms = transforms.Compose(spatial_transforms)

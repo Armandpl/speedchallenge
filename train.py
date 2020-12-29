@@ -91,7 +91,7 @@ if __name__ == "__main__":
         5, skip_frames=int(config.skip_frames), transform=tfms, aug = config.aug)
 
     validset = VideoFrameDataset(os.path.join("data", "valid"),
-        int(config.sequence_length), 5, skip_frames=int(config.skip_frames), transform=tfms, config = config.aug)
+        int(config.sequence_length), 5, skip_frames=int(config.skip_frames), transform=tfms, aug = config.aug)
 
     print(len(trainset), " items in the training set")
     print(len(validset), " items in the validation set")
@@ -113,13 +113,9 @@ if __name__ == "__main__":
         for batch_idx, (data, targets) in enumerate(train_loader):
             # Get data to cuda
             data = data.to(device=device)
-            print(targets)
             targets = targets/config.max_target
-            print(targets)
             targets = targets.to(device=device)
-            print(targets)
             targets = targets.float().unsqueeze(1)
-            print(targets)
 
             # forward
             scores = model(data)
